@@ -37,7 +37,7 @@ flowchart LR
 - [x] Python API (links stored in memory for now)
 - [ ] PostgreSQL database
 - [x] Unit tests
-- [ ] Multi-stage Dockerfile
+- [x] Multi-stage Dockerfile — image reduced from 1.67 GB to 222 MB, runs as a non-root user
 - [ ] Docker Compose for the app and database
 - [ ] GitHub Actions: test → build → push
 - [ ] Secret scanning with gitleaks
@@ -92,6 +92,15 @@ Run the app, then open http://127.0.0.1:8000/docs:
 ```bash
 uvicorn app.main:app --reload
 ```
+
+### With Docker
+
+```bash
+docker build -t secure-cicd-pipeline .
+docker run -d -p 8000:8000 --name url-shortener secure-cicd-pipeline
+```
+
+The image is a multi-stage build on `python:3.14-slim`. It runs as a non-root user and has a built-in health check on `/health`.
 
 ## What I learned
 
