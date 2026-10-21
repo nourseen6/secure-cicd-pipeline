@@ -1,4 +1,4 @@
-# Secure CI/CD Pipeline PROJECT1
+# Secure CI/CD Pipeline 
 
 [![CI](https://github.com/nourseen6/secure-cicd-pipeline/actions/workflows/ci.yml/badge.svg)](https://github.com/nourseen6/secure-cicd-pipeline/actions/workflows/ci.yml)
 
