@@ -34,8 +34,9 @@ flowchart LR
 
 ## Progress
 
-- [ ] Python API with a PostgreSQL database
-- [ ] Unit tests
+- [x] Python API (links stored in memory for now)
+- [ ] PostgreSQL database
+- [x] Unit tests
 - [ ] Multi-stage Dockerfile
 - [ ] Docker Compose for the app and database
 - [ ] GitHub Actions: test → build → push
@@ -49,16 +50,48 @@ flowchart LR
 
 ```
 .
-├── app/            # Python service (coming soon)
-├── tests/          # Unit tests (coming soon)
-├── docs/           # Diagrams and screenshots (coming soon)
+├── app/
+│   └── main.py             # FastAPI service
+├── tests/
+│   └── test_main.py        # Unit tests
+├── docs/                   # Diagrams and screenshots (coming soon)
+├── requirements.txt        # Runtime dependencies
+├── requirements-dev.txt    # Test dependencies
 ├── README.md
 └── LICENSE
 ```
 
+## API
+
+| Method | Endpoint | Description |
+|---|---|---|
+| `GET` | `/health` | Health check — returns `{"status": "ok"}` |
+| `POST` | `/shorten` | Takes `{"url": "https://..."}` and returns a short code |
+| `GET` | `/{code}` | Redirects to the original URL, or `404` if the code is unknown |
+
+Interactive docs are served at `/docs` when the app is running.
+
 ## Getting started
 
-Instructions will be added as each part is built.
+Requirements: Python 3.12+.
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements-dev.txt
+```
+
+Run the tests:
+
+```bash
+pytest
+```
+
+Run the app, then open http://127.0.0.1:8000/docs:
+
+```bash
+uvicorn app.main:app --reload
+```
 
 ## What I learned
 
