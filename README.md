@@ -1,5 +1,7 @@
 # Secure CI/CD Pipeline
 
+[![CI](https://github.com/nourseen6/secure-cicd-pipeline/actions/workflows/ci.yml/badge.svg)](https://github.com/nourseen6/secure-cicd-pipeline/actions/workflows/ci.yml)
+
 A DevSecOps pipeline for a small Python web service. Every push is tested, scanned for leaked secrets, built into a container image, scanned for vulnerabilities, and published — and the pipeline **fails automatically** when it finds a critical issue.
 
 The same pipeline runs on **GitHub Actions** and on **Jenkins**.
@@ -18,7 +20,7 @@ flowchart LR
     build --> scan[Image scan<br/>Trivy]
     scan -->|no CRITICAL| push[Push image]
     scan -->|CRITICAL found| fail[❌ Fail build]
-    push --> reg[(Docker Hub)]
+    push --> reg[(GitHub Container<br/>Registry)]
     gh -.-> dep[Dependabot<br/>dependency PRs]
 ```
 
@@ -39,7 +41,7 @@ flowchart LR
 - [x] Unit tests
 - [x] Multi-stage Dockerfile — image reduced from 1.67 GB to 222 MB, runs as a non-root user
 - [x] Docker Compose for the app and database, with health checks and the password kept out of Git
-- [ ] GitHub Actions: test → build → push
+- [x] GitHub Actions: test → build → push to the GitHub Container Registry
 - [ ] Secret scanning with gitleaks
 - [ ] Image scanning with Trivy, failing on CRITICAL
 - [ ] Dependabot
@@ -98,6 +100,14 @@ uvicorn app.main:app --reload
 ```
 
 ### With Docker
+
+Pull the image the pipeline publishes:
+
+```bash
+docker run -d -p 8000:8000 ghcr.io/nourseen6/secure-cicd-pipeline:latest
+```
+
+Or build it yourself:
 
 ```bash
 docker build -t secure-cicd-pipeline .
