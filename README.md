@@ -34,11 +34,11 @@ flowchart LR
 
 ## Progress
 
-- [x] Python API (links stored in memory for now)
-- [ ] PostgreSQL database
+- [x] Python API
+- [x] PostgreSQL storage with parameterized queries
 - [x] Unit tests
 - [x] Multi-stage Dockerfile — image reduced from 1.67 GB to 222 MB, runs as a non-root user
-- [ ] Docker Compose for the app and database
+- [x] Docker Compose for the app and database, with health checks and the password kept out of Git
 - [ ] GitHub Actions: test → build → push
 - [ ] Secret scanning with gitleaks
 - [ ] Image scanning with Trivy, failing on CRITICAL
@@ -51,10 +51,14 @@ flowchart LR
 ```
 .
 ├── app/
-│   └── main.py             # FastAPI service
+│   ├── main.py             # FastAPI service
+│   └── storage.py          # PostgreSQL or in-memory storage
 ├── tests/
 │   └── test_main.py        # Unit tests
 ├── docs/                   # Diagrams and screenshots (coming soon)
+├── Dockerfile              # Multi-stage, non-root image
+├── docker-compose.yml      # App + PostgreSQL
+├── .env.example            # Template for local secrets
 ├── requirements.txt        # Runtime dependencies
 ├── requirements-dev.txt    # Test dependencies
 ├── README.md
@@ -101,6 +105,17 @@ docker run -d -p 8000:8000 --name url-shortener secure-cicd-pipeline
 ```
 
 The image is a multi-stage build on `python:3.14-slim`. It runs as a non-root user and has a built-in health check on `/health`.
+
+Without a database, links are kept in memory and lost on restart.
+
+### With Docker Compose (app + PostgreSQL)
+
+```bash
+cp .env.example .env    # then set your own POSTGRES_PASSWORD in .env
+docker compose up -d --build
+```
+
+The app waits until PostgreSQL is healthy, and links are stored in a Docker volume, so they survive restarts. Stop everything with `docker compose down`.
 
 ## What I learned
 
