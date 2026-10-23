@@ -1,0 +1,19 @@
+version: 2
+updates:
+  # Python packages in requirements.txt and requirements-dev.txt
+  - package-ecosystem: pip
+    directory: /
+    schedule:
+      interval: weekly
+
+  # The base image in the Dockerfile
+  - package-ecosystem: docker
+    directory: /
+    schedule:
+      interval: weekly
+
+  # The pinned actions in .github/workflows
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
