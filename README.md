@@ -15,8 +15,9 @@ flowchart LR
     dev[Developer] -->|git push| gh[GitHub]
     gh --> ci{{CI pipeline<br/>GitHub Actions / Jenkins}}
     ci --> test[Unit tests]
-    test --> secrets[Secret scan<br/>gitleaks]
-    secrets --> build[Docker build<br/>multi-stage]
+    ci --> secrets[Secret scan<br/>gitleaks]
+    test --> build[Docker build<br/>multi-stage]
+    secrets --> build
     build --> scan[Image scan<br/>Trivy]
     scan -->|no CRITICAL| push[Push image]
     scan -->|CRITICAL found| fail[❌ Fail build]
@@ -42,9 +43,10 @@ flowchart LR
 - [x] Multi-stage Dockerfile — image reduced from 1.67 GB to 222 MB, runs as a non-root user
 - [x] Docker Compose for the app and database, with health checks and the password kept out of Git
 - [x] GitHub Actions: test → build → push to the GitHub Container Registry
-- [ ] Secret scanning with gitleaks
-- [ ] Image scanning with Trivy, failing on CRITICAL
-- [ ] Dependabot
+- [x] Secret scanning with gitleaks across the full Git history
+- [x] Image scanning with Trivy — the image is pushed only if no fixable CRITICAL vulnerability is found
+- [x] Dependabot for Python packages, the base image, and GitHub Actions
+- [x] Every third-party action pinned to a commit SHA
 - [ ] The same pipeline as a Jenkinsfile
 - [ ] Red run and green run documented
 
