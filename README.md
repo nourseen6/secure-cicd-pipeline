@@ -48,7 +48,20 @@ flowchart LR
 - [x] Dependabot for Python packages, the base image, and GitHub Actions
 - [x] Every third-party action pinned to a commit SHA
 - [ ] The same pipeline as a Jenkinsfile
-- [ ] Red run and green run documented
+- [x] Red run and green run documented — see [Security gates in action](#security-gates-in-action)
+
+## Security gates in action
+
+Each gate was tested on purpose, on a pull request that was then closed without merging.
+
+| Scenario | 🔴 Blocked | 🟢 Fixed |
+|---|---|---|
+| **Hard-coded API key** in `app/config.py` | [gitleaks found it](https://github.com/nourseen6/secure-cicd-pipeline/actions/runs/40001783065) (`generic-api-key`); the image build was skipped | [Key moved to an environment variable](https://github.com/nourseen6/secure-cicd-pipeline/actions/runs/40001893687) and the leaking commit removed from history |
+| **Outdated library**: `django==2.2.0` | [Trivy found 6 CRITICAL CVEs](https://github.com/nourseen6/secure-cicd-pipeline/actions/runs/40003321334), including CVE-2019-14234 (SQL injection); the image was not pushed | [Upgraded to Django 6.1.2](https://github.com/nourseen6/secure-cicd-pipeline/actions/runs/40003968577); the scan passes |
+
+Pull requests: [#10](https://github.com/nourseen6/secure-cicd-pipeline/pull/10) and [#11](https://github.com/nourseen6/secure-cicd-pipeline/pull/11).
+
+**Lesson from the secret demo:** deleting a leaked secret in a new commit is not enough — it stays in the Git history. The fix is to rotate the secret, load it from the environment, and remove it from history.
 
 ## Project structure
 
