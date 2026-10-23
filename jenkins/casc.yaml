@@ -1,0 +1,29 @@
+jenkins:
+  systemMessage: "Secure CI/CD Pipeline: local Jenkins, configured as code"
+  numExecutors: 2
+  securityRealm:
+    local:
+      allowsSignup: false
+      users:
+        - id: admin
+          password: ${JENKINS_ADMIN_PASSWORD}
+  authorizationStrategy:
+    loggedInUsersCanDoAnything:
+      allowAnonymousRead: false
+
+jobs:
+  - script: >
+      pipelineJob('secure-cicd-pipeline') {
+        description('Tests, secret scan, image build, and Trivy scan for every new commit on main.')
+        definition {
+          cpsScm {
+            scm {
+              git {
+                remote { url('https://github.com/nourseen6/secure-cicd-pipeline.git') }
+                branch('*/main')
+              }
+            }
+            scriptPath('Jenkinsfile')
+          }
+        }
+      }
