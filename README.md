@@ -1,4 +1,4 @@
-# Secure CI/CD Pipeline 
+# Secure CI/CD Pipeline
 
 [![CI](https://github.com/nourseen6/secure-cicd-pipeline/actions/workflows/ci.yml/badge.svg)](https://github.com/nourseen6/secure-cicd-pipeline/actions/workflows/ci.yml)
 
@@ -6,7 +6,7 @@ A DevSecOps pipeline for a small Python web service. Every push is tested, scann
 
 The same pipeline runs on **GitHub Actions** and on **Jenkins**.
 
-> 🚧 **Work in progress.** Built step by step as part of my [DevOps roadmap](https://github.com/nourseen6/roadmap). The checklist below shows what's done.
+Project 1 of my [DevOps roadmap](https://github.com/nourseen6/roadmap).
 
 ## Architecture
 
@@ -35,20 +35,20 @@ flowchart LR
 | Security | gitleaks, Trivy, Dependabot |
 | Scripting | Bash |
 
-## Progress
+## Features
 
-- [x] Python API
-- [x] PostgreSQL storage with parameterized queries
-- [x] Unit tests
-- [x] Multi-stage Dockerfile — image reduced from 1.67 GB to 222 MB, runs as a non-root user
-- [x] Docker Compose for the app and database, with health checks and the password kept out of Git
-- [x] GitHub Actions: test → build → push to the GitHub Container Registry
-- [x] Secret scanning with gitleaks across the full Git history
-- [x] Image scanning with Trivy — the image is pushed only if no fixable CRITICAL vulnerability is found
-- [x] Dependabot for Python packages, the base image, and GitHub Actions
-- [x] Every third-party action pinned to a commit SHA
-- [ ] The same pipeline as a Jenkinsfile
-- [x] Red run and green run documented — see [Security gates in action](#security-gates-in-action)
+- Python API
+- PostgreSQL storage with parameterized queries
+- Unit tests
+- Multi-stage Dockerfile — image reduced from 1.67 GB to 222 MB, runs as a non-root user
+- Docker Compose for the app and database, with health checks and the password kept out of Git
+- GitHub Actions: test → build → push to the GitHub Container Registry
+- Secret scanning with gitleaks across the full Git history
+- Image scanning with Trivy — the image is pushed only if no fixable CRITICAL vulnerability is found
+- Dependabot for Python packages, the base image, and GitHub Actions
+- Every third-party action pinned to a commit SHA
+- The same pipeline as a Jenkinsfile, on a local Jenkins configured as code
+- Red run and green run documented — see [Security gates in action](#security-gates-in-action)
 
 ## Security gates in action
 
@@ -72,7 +72,11 @@ Pull requests: [#10](https://github.com/nourseen6/secure-cicd-pipeline/pull/10) 
 │   └── storage.py          # PostgreSQL or in-memory storage
 ├── tests/
 │   └── test_main.py        # Unit tests
-├── docs/                   # Diagrams and screenshots (coming soon)
+├── .github/
+│   ├── workflows/ci.yml    # GitHub Actions pipeline
+│   └── dependabot.yml      # Weekly dependency updates
+├── jenkins/                # Local Jenkins: image, plugins, configuration as code
+├── Jenkinsfile             # The same pipeline on Jenkins
 ├── Dockerfile              # Multi-stage, non-root image
 ├── docker-compose.yml      # App + PostgreSQL
 ├── .env.example            # Template for local secrets
@@ -142,9 +146,23 @@ docker compose up -d --build
 
 The app waits until PostgreSQL is healthy, and links are stored in a Docker volume, so they survive restarts. Stop everything with `docker compose down`.
 
+### The pipeline on Jenkins
+
+```bash
+cp jenkins/.env.example jenkins/.env    # set JENKINS_ADMIN_PASSWORD and DOCKER_GID
+docker compose -f jenkins/docker-compose.yml up -d --build
+```
+
+Open http://127.0.0.1:8080 and sign in as `admin`. Jenkins is configured from [`jenkins/casc.yaml`](jenkins/casc.yaml): there is no setup wizard, and the `secure-cicd-pipeline` job is created automatically. It checks `main` for new commits every five minutes and runs the [`Jenkinsfile`](Jenkinsfile): unit tests → gitleaks → image build → Trivy. Pushing to ghcr.io is optional: add a `ghcr` username/token credential in Jenkins and run the job with `PUSH_IMAGE` checked.
+
 ## What I learned
 
-A short write-up of the problems I hit and how I solved them will be added here.
+- **Order the gates from cheapest to most expensive.** Tests and the secret scan run in parallel and take seconds; the image is built only if both pass, and pushed only if Trivy passes.
+- **A smaller image is a safer image.** The multi-stage build cut the image from 1.67 GB to 222 MB, and fewer packages means fewer vulnerabilities for Trivy to find.
+- **Deleting a leaked secret isn't enough.** It stays in the Git history, which is why gitleaks scans every commit and the real fix is to rotate the secret and load it from the environment.
+- **Pin what you run.** Actions are pinned to commit SHAs, so a hijacked tag can't change the pipeline, and Dependabot keeps those pins current.
+- **Least privilege everywhere.** The workflow can only read the repo by default; only the build job can publish packages, and only on pushes to `main`. The container runs as a non-root user.
+- **Problems I hit:** files created as `root` that my user couldn't edit (fixed with `chown`), a port already taken by an old container, Node 20 being removed from GitHub runners (upgraded every action), and Docker volume paths when Jenkins starts containers on the host engine (solved with `--volumes-from`).
 
 ## License
 
