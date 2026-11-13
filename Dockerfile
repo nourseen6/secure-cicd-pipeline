@@ -1,5 +1,5 @@
 # Stage 1: install the dependencies into a virtual environment
-FROM python:3.14-slim AS builder
+FROM python:3.15-slim AS builder
 
 RUN python -m venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
@@ -9,7 +9,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 
 # Stage 2: the runtime image — only the venv and the app code
-FROM python:3.14-slim
+FROM python:3.15-slim
 
 ENV PATH="/opt/venv/bin:$PATH" \
     PYTHONDONTWRITEBYTECODE=1 \
